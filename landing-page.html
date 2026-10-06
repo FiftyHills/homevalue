@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Value Request</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f2f2f0;
+  --surface:#ffffff;
+  --ink:#111111;
+  --muted:#6b6b6b;
+  --accent:#111111;
+  --accent-ink:#ffffff;
+  --line:#dcdcd9;
+  --font-display:'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121212;
+    --surface:#1b1b1b;
+    --ink:#f5f5f5;
+    --muted:#a0a0a0;
+    --accent:#f5f5f5;
+    --accent-ink:#111111;
+    --line:#2e2e2e;
+    color-scheme: dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  padding:40px 16px;
+}
+.page{width:100%;max-width:480px;display:flex;flex-direction:column;gap:20px}
+
+.agent-strip{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 16px;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:14px;
+}
+.agent-avatar{
+  width:44px;height:44px;border-radius:50%;
+  background:var(--accent);color:var(--accent-ink);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:600;font-size:17px;
+  flex-shrink:0;
+}
+.agent-meta{min-width:0}
+.agent-name{font-weight:600;font-size:14px;line-height:1.3}
+.agent-role{color:var(--muted);font-size:12.5px;line-height:1.3;overflow-wrap:anywhere}
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:32px 28px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+h1{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:clamp(24px,6vw,30px);
+  line-height:1.15;
+  margin:0;
+}
+.address-line{
+  font-size:14.5px;
+  color:var(--muted);
+  margin:0;
+  padding-top:2px;
+}
+.address-line strong{color:var(--ink);font-weight:600}
+
+form{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+label{font-size:12.5px;font-weight:600;color:var(--muted);letter-spacing:.02em;text-transform:uppercase}
+.field{display:flex;flex-direction:column;gap:6px}
+input[type="text"],input[type="tel"]{
+  font-family:var(--font-body);
+  font-size:16px;
+  padding:13px 14px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:var(--bg);
+  color:var(--ink);
+  width:100%;
+}
+input::placeholder{color:var(--muted);opacity:.75}
+input:focus{outline:2px solid var(--accent);outline-offset:1px}
+
+button{
+  font-family:var(--font-body);
+  font-size:16px;
+  font-weight:600;
+  padding:14px 16px;
+  border-radius:10px;
+  border:none;
+  background:var(--accent);
+  color:var(--accent-ink);
+  cursor:pointer;
+  margin-top:4px;
+}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.6;cursor:default}
+
+.thanks{display:none;flex-direction:column;gap:10px;text-align:center;padding:8px 0}
+.thanks.show{display:flex}
+.thanks h2{font-family:var(--font-display);font-size:22px;margin:0}
+.thanks p{color:var(--muted);font-size:14.5px;margin:0;line-height:1.5}
+.direct-contact{
+  margin-top:6px;padding:12px 14px;border-radius:10px;
+  background:var(--bg);border:1px solid var(--line);
+  font-size:14px;
+}
+.direct-contact strong{display:block;color:var(--ink);margin-bottom:2px}
+
+form[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="agent-strip" id="agentStrip">
+    <div class="agent-avatar" id="agentInitial">?</div>
+    <div class="agent-meta">
+      <div class="agent-name" id="agentName">Your local agent</div>
+      <div class="agent-role" id="agentContact">Reach out with a few details and I'll call you</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1 id="headline">What could your home sell for right now?</h1>
+    <p class="address-line" id="addressLine" hidden>We just sold <strong id="addressText"></strong> in your neighborhood</p>
+
+    <form id="leadForm">
+      <div class="field">
+        <label for="sellerAddress">Address you're thinking about selling</label>
+        <input type="text" id="sellerAddress" name="sellerAddress" placeholder="123 Main St" required>
+      </div>
+      <div class="field">
+        <label for="firstName">First name</label>
+        <input type="text" id="firstName" name="firstName" placeholder="First name" required>
+      </div>
+      <div class="field">
+        <label for="lastName">Last name</label>
+        <input type="text" id="lastName" name="lastName" placeholder="Last name" required>
+      </div>
+      <div class="field">
+        <label for="phone">Phone number</label>
+        <input type="tel" id="phone" name="phone" inputmode="tel" placeholder="(555) 123-4567" required>
+      </div>
+      <button type="submit" id="submitBtn">Submit</button>
+    </form>
+
+    <div class="thanks" id="thanks">
+      <h2>Sent.</h2>
+      <p id="thanksBody">You'll hear back shortly.</p>
+      <div class="direct-contact" id="directContact" hidden>
+        <strong id="directName"></strong>
+        <span id="directDetail"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 1. Your deployed Apps Script Web App URL (the doPost one — see Code.gs).
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjVLrq9keveubrnCVb4i9GiRwBud7HfohKw5p-gTIsSveIoUUfndvG0HwN5h5MZkinTg/exec";
+
+// 2. Your agent roster, keyed by the short code used in each postcard's
+//    QR link (?a=CODE). Only needs updating when your roster changes.
+var AGENTS = {
+  alexh: { name: "Alex Han", phone: "(415) 819-6116", email: "alex@fiftyhills.com" },
+  alexh2: { name: "Alex Ho", phone: "(707) 540-1108", email: "alexho@fiftyhills.com" },
+  alexk: { name: "Alex Kim", phone: "(510) 384-1632", email: "alexkim@fiftyhills.com" },
+  alexm: { name: "Alex Martin", phone: "(415) 942-3454", email: "alexander@fiftyhills.com" },
+  allent: { name: "Allen Tran", phone: "(408) 892-6638", email: "allen@fiftyhills.com" },
+  alvinp: { name: "Alvin Palma", phone: "(408) 836-7682", email: "alvin@fiftyhils.com" },
+  andyp: { name: "Andy Pham", phone: "(650) 787-9420", email: "andy@fiftyhills.com" },
+  armania: { name: "Armani Aquino", phone: "(650) 455-3168", email: "armani@fiftyhills.com" },
+  ashleyh: { name: "Ashley Hwang", phone: "(310) 926-3658", email: "ashley@fiftyhills.com" },
+  ben: { name: "Be Nguyen", phone: "(408) 940-2046", email: "be@fiftyhills.com" },
+  belinday: { name: "Belinda Yan", phone: "(925) 324-2098", email: "belinda@fiftyhills.com" },
+  binhl: { name: "Binh Le", phone: "(669) 388-1999", email: "binh@fiftyhills.com" },
+  brandont: { name: "Brandon Tran", phone: "(510) 735-5367", email: "brandon@fiftyhills.com" },
+  briant: { name: "Brian Tran", phone: "(415) 999-8700", email: "brian@fiftyhills.com" },
+  camilleb: { name: "Camille Blaquera", phone: "(408) 646-2196", email: "camille@fiftyhills.com" },
+  danb: { name: "Dan Baradi", phone: "(415)529-8896", email: "dan@fiftyhills.com" },
+  donovany: { name: "Donovan Yi", phone: "(650) 235-5272", email: "donovan@fiftyhills.com" },
+  earlem: { name: "Earle Makin", phone: "(408) 205-4441", email: "earle@terarealestate.com" },
+  edieb: { name: "Edie Brodsky", phone: "(408) 802-2580", email: "edie@terarealestate.com" },
+  emilyp: { name: "Emily Park", phone: "(925) 967-8138", email: "emily@fiftyhills.com" },
+  ernestines: { name: "Ernestine Siu", phone: "(510) 590-0531", email: "ernestine@fiftyhills.com" },
+  geenl: { name: "Geen Lee", phone: "(415) 290-4798", email: "geen@fiftyhills.com" },
+  georgea: { name: "George Adkins", phone: "(650) 290-2864", email: "george@fiftyhills.com" },
+  guinevereh: { name: "Guinevere AKA Jenny Holder", phone: "(510) 333-7498", email: "jenny@themirrorteam.com" },
+  heidil: { name: "Heidi Lam", phone: "(415) 689-0684", email: "heidi@fiftyhills.com" },
+  hieud: { name: "Hieu Trong Dao", phone: "(408) 250-1053", email: "hieu@fiftyhills.com" },
+  ilas: { name: "Ila Sahagun", phone: "(510) 932-9362", email: "ila@themirrorteam.com" },
+  jacquelinem: { name: "Jacqueline Martinez", phone: "(628) 288-0120", email: "jacqueline@fiftyhills.com" },
+  jamesd: { name: "James Do", phone: "(408) 239-7397", email: "james@fiftyhills.com" },
+  jiey: { name: "Jie Yao", phone: "(650) 906-0393", email: "jie@fiftyhills.com" },
+  jenellaj: { name: "Jenella Jiang", phone: "(650) 785-2636", email: "jenella@fiftyhills.com" },
+  jessicad: { name: "Jessica Dang", phone: "408-207-3056", email: "jessica@fiftyhills.com" },
+  jewelzd: { name: "Jewelz Do", phone: "(669) 213-7549", email: "jewelz@fiftyhills.com" },
+  johnnyh: { name: "Johnny Hoang", phone: "(408) 705-8121", email: "johnny@fiftyhills.com" },
+  juliem: { name: "Julie Martinez", phone: "(707) 628-0123", email: "julie@martinezregroup.com" },
+  karas: { name: "Kara Smith", phone: "(916) 578-3915", email: "kara@fiftyhills.com" },
+  kaylav: { name: "Kayla Viola", phone: "(925) 586-6986", email: "kayla.v@themirrorteam.com" },
+  loretob: { name: "Loreto Barroso", phone: "(415) 465-0617", email: "loreto@fiftyhills.com" },
+  maggien: { name: "Maggie Nguyen", phone: "(669) 300-8338", email: "quynh@fiftyhills.com" },
+  marlons: { name: "Marlon Salazar", phone: "(650) 443-8218", email: "marlon@fiftyhills.com" },
+  megank: { name: "Megan Ko", phone: "(415) 818-3246", email: "megan@themirrorteam.com" },
+  michaels: { name: "Michael B. Soon", phone: "(415) 867-7869", email: "michael@fiftyhills.com" },
+  nancyd: { name: "Nancy Do", phone: "(669) 273-9556", email: "nancy@fiftyhills.com" },
+  oscarb: { name: "Oscar Bernal", phone: "(408) 466-6632", email: "oscar@fiftyhills.com" },
+  paulp: { name: "Paul Pham", phone: "(408) 824-0674", email: "paul.p@fiftyhills.com" },
+  paulag: { name: "Paula de Vera Giron", phone: "(702) 219-9907", email: "paula@fiftyhills.com" },
+  peterv: { name: "Peter Valadez", phone: "(650) 445-5598", email: "peter@fiftyhills.com" },
+  randele: { name: "Randel Emakoua", phone: "(240) 593-3323", email: "randel@fiftyhills.com" },
+  randya: { name: "Randy Aquino", phone: "(415) 308-7661", email: "randy@fiftyhills.com" },
+  randyj: { name: "Randy Justin Garcia Jr", phone: "(415) 606-0979", email: "rg@fiftyhills.com" },
+  rebeccap: { name: "Rebecca Preece", phone: "(415) 515-1121", email: "rebecca.p@themirrorteam.com" },
+  rosmya: { name: "Rosmy Alfaro", phone: "(510) 816-3977", email: "rosmy@terarealestate.com" },
+  sabrinal: { name: "Sabrina Lem", phone: "(408) 757-1438", email: "sabrina@fiftyhills.com" },
+  sammil: { name: "Sammi Leung", phone: "(510) 610-7170", email: "sammi@fiftyhills.com" },
+  shup: { name: "Shu Pu", phone: "(415) 570-3090", email: "shu@fiftyhills.com" },
+  simonl: { name: "Simon Lo", phone: "(415) 990-9686", email: "simon@fiftyhills.com" },
+  sophieh: { name: "Sophie Han", phone: "(510) 706-7662", email: "sophie@fiftyhills.com" },
+  steviej: { name: "Stevie Joo", phone: "(650) 868-8164", email: "stevie@fiftyhills.com" },
+  taniah: { name: "Tania Salazar Huerta", phone: "(650) 238-4413", email: "tania@fiftyhills.com" },
+  tonyl: { name: "Tony Lam", phone: "(925) 550-6572", email: "tony@fiftyhills.com" },
+  trietn: { name: "Triet Nguyen", phone: "(408) 718-8296", email: "triet@terarealestate.com" },
+  uyentinan: { name: "Uyen(Tina) Nguyen", phone: "(408) 799-4554", email: "uyen@fiftyhills.com" },
+  vanessag: { name: "Vanessa Garcia", phone: "(415) 610-9423", email: "vanessa@fiftyhills.com" },
+  vanneyn: { name: "Vanney Nguyen", phone: "(408) 333-2168", email: "vanney@fiftyhills.com" },
+  vyt: { name: "Vy Tran", phone: "(408) 396-1618", email: "vy@fiftyhills.com" },
+  zheenae: { name: "Zheena Eler", phone: "(707) 853-3829", email: "zheena@fiftyhills.com" }
+};
+
+function params(){
+  return new URLSearchParams(window.location.search);
+}
+
+function initials(name){
+  return name.split(" ").map(function(p){ return p[0] || ""; }).join("").slice(0,2).toUpperCase();
+}
+
+function boot(){
+  var p = params();
+  var code = p.get("a") || "";
+  var mailedAddress = p.get("addr") || "";
+  var agent = AGENTS[code];
+
+  if (agent){
+    document.getElementById("agentName").textContent = agent.name;
+    document.getElementById("agentContact").textContent = agent.phone + " · " + agent.email;
+    document.getElementById("agentInitial").textContent = initials(agent.name);
+  }
+
+  if (mailedAddress){
+    document.getElementById("addressLine").hidden = false;
+    document.getElementById("addressText").textContent = mailedAddress;
+  }
+
+  var form = document.getElementById("leadForm");
+  var btn = document.getElementById("submitBtn");
+
+  form.addEventListener("submit", function(ev){
+    ev.preventDefault();
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+
+    var body = new URLSearchParams();
+    body.set("sellerAddress", document.getElementById("sellerAddress").value.trim());
+    body.set("firstName", document.getElementById("firstName").value.trim());
+    body.set("lastName", document.getElementById("lastName").value.trim());
+    body.set("phone", document.getElementById("phone").value.trim());
+    body.set("agentCode", code);
+    body.set("agentName", agent ? agent.name : "");
+    body.set("mailedAddress", mailedAddress);
+    body.set("source", "postcard");
+    body.set("submittedAt", new Date().toISOString());
+
+    var finish = function(){
+      form.hidden = true;
+      var thanks = document.getElementById("thanks");
+      thanks.classList.add("show");
+      if (agent){
+        document.getElementById("thanksBody").textContent = agent.name + " will reach out shortly.";
+        document.getElementById("directContact").hidden = false;
+        document.getElementById("directName").textContent = agent.name;
+        document.getElementById("directDetail").textContent = "Prefer to talk now? " + agent.phone;
+      }
+    };
+
+    fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString()
+    }).then(finish).catch(finish);
+  });
+}
+
+if (document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
+</script>
+</body>
+</html>
